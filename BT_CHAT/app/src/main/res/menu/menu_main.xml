@@ -1,0 +1,23 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="edu.csulb.android.bluetoothmessenger.MainActivity">
+    <item
+        android:id="@+id/action_profile"
+        android:orderInCategory="100"
+        android:title="@string/action_profile"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_groupchat"
+        android:orderInCategory="100"
+        android:title="@string/group_chat"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/group_chat_make_discoverable"
+        android:orderInCategory="100"
+        android:title="@string/make_discoverable"
+        app:showAsAction="never" />
+
+</menu>
