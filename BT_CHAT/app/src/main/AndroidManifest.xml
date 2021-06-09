@@ -3,6 +3,9 @@
     package="com.example.bluetoothchat">
 
     <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -10,9 +13,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.BluetoothChat">
-        <activity android:name=".AddPermissions"></activity>
-        <activity android:name=".StartApp" />
-        <activity android:name=".MainActivity">
+        <activity android:name=".ShowDevices"></activity>
+        <activity android:name=".AddPermissions" />
+        <activity android:name="MainActivity"></activity>
+        <activity android:name=".StartApp">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
