@@ -1,6 +1,13 @@
 package com.example.bluetoothchat;
 
 import android.content.Context;
+import android.graphics.Color;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import 	androidx.core.app.ActivityCompat;
+import 	androidx.core.content.ContextCompat;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.annotation.Size;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,13 +17,12 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import static com.example.bluetoothchat.MainActivity.DEVICE_NAME;
 
 public class ChatMessageAdapter extends ArrayAdapter<MessageInstance> {
     private Context ctx;
 
-    ChatMessageAdapter(Context ctx, int resource) {
+    ChatMessageAdapter(Context ctx, int resource){
         super(ctx, resource);
         this.ctx = ctx;
     }
@@ -36,7 +42,7 @@ public class ChatMessageAdapter extends ArrayAdapter<MessageInstance> {
         layout.setLayoutParams(params);
 
 
-        if (msg.message != null) {
+        if(msg.message != null) {
 
             messageView.setText(msg.message);
             messageView.setBackgroundResource((msg.send) ? R.drawable.ic_chat_bubble_out : R.drawable.ic_chat_bubble_outline_black_48dp);
@@ -49,13 +55,13 @@ public class ChatMessageAdapter extends ArrayAdapter<MessageInstance> {
             params_message.height = 0;
             imageView.setLayoutParams(params_message);
 
-        } else if (msg.imageBitmap != null) {
+        } else if(msg.imageBitmap != null) {
             imageView.setImageBitmap(msg.imageBitmap);
             messageView.setBackgroundResource(0);
             imageView.setBackgroundResource((msg.send) ? R.drawable.ic_chat_bubble_out : R.drawable.ic_chat_bubble_outline_black_48dp);
-        } else if (msg.audioFile != null) {
+        } else if(msg.audioFile != null){
             String text = (msg.send) ? "File sent: " : "File Received: ";
-            messageView.setText(text + msg.audioFile.getName());
+            messageView.setText(text +  msg.audioFile.getName());
             LinearLayout.LayoutParams params_message = new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             params_message.width = 0;
