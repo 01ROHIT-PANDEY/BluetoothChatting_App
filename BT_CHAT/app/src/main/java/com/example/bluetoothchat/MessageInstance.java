@@ -7,13 +7,11 @@ import java.io.File;
 
 public class MessageInstance {
     public static final int DATA_IMAGE = 2;
-    public static final int DATA_AUDIO = 3;
     public static final int DATA_TEXT = 1;
 
     public boolean send;
     public String message;
     public Bitmap imageBitmap;
-    public File audioFile;
     public String macAddress;
     public String userName;
     public int dataType;
@@ -23,7 +21,7 @@ public class MessageInstance {
     public MessageInstance() {
         message = null;
         imageBitmap = null;
-        audioFile = null;
+
     }
 
     public String getMessage() {
@@ -34,9 +32,6 @@ public class MessageInstance {
         return imageBitmap;
     }
 
-    public File getAudio() {
-        return audioFile;
-    }
 
     public String getMacAddress() {
         return macAddress;
@@ -85,27 +80,22 @@ public class MessageInstance {
         this.message = message;
         this.macAddress = macAddress;
         imageBitmap = null;
-        audioFile = null;
+
     }
 
     public MessageInstance(boolean side, String message) {
         this.send = side;
         this.message = message;
         imageBitmap = null;
-        audioFile = null;
+
     }
 
     public MessageInstance(boolean side, Bitmap imageBitmap) {
         this.send = side;
         this.message = null;
         this.imageBitmap = imageBitmap;
-        audioFile = null;
+
     }
 
-    public MessageInstance(boolean side, File audioFile) {
-        this.send = side;
-        this.message = null;
-        this.imageBitmap = null;
-        this.audioFile = audioFile;
-    }
+
 }

@@ -1,5 +1,4 @@
 package com.example.bluetoothchat;
-
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.bluetooth.BluetoothAdapter;
@@ -13,7 +12,7 @@ import android.widget.Toast;
 public class AddPermissions extends AppCompatActivity {
 
     Button enable_btn,connect_btn;
-    TextView msg_view;
+    TextView notification;
     BluetoothAdapter bluetoothAdapter;
     int REQUEST_ENABLE_BLUETOOTH=10;
     @Override
@@ -23,6 +22,8 @@ public class AddPermissions extends AppCompatActivity {
         getSupportActionBar().hide();
         enable_btn=(Button)findViewById(R.id.enable);
         connect_btn=(Button)findViewById(R.id.connect);
+        notification=findViewById(R.id.Notified);
+        notification.setText("\tSteps to Connect \n\n 1.Start Discovery of an App. \n\n 2.Select Device from Device list. \n\n 3.Start Communication by selecting the device.");
         bluetoothAdapter=BluetoothAdapter.getDefaultAdapter();
         if(bluetoothAdapter==null)
         {
@@ -72,4 +73,13 @@ public class AddPermissions extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode,  Intent data) {
+        if(requestCode==REQUEST_ENABLE_BLUETOOTH)
+        {
+            enable_btn.setVisibility(View.INVISIBLE);
+
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
 }

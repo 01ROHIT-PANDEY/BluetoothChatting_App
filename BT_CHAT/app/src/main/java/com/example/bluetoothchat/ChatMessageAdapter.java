@@ -36,8 +36,7 @@ public class ChatMessageAdapter extends ArrayAdapter<MessageInstance> {
         TextView messageView = (TextView) view.findViewById(R.id.singleMessage);
         ImageView imageView = (ImageView) view.findViewById(R.id.chat_image);
         LinearLayout layout = (LinearLayout) view.findViewById(R.id.chat_linear_layout);
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         params.gravity = (msg.send ? Gravity.END : Gravity.START);
         layout.setLayoutParams(params);
 
@@ -48,9 +47,8 @@ public class ChatMessageAdapter extends ArrayAdapter<MessageInstance> {
             messageView.setBackgroundResource((msg.send) ? R.drawable.ic_chat_bubble_out : R.drawable.ic_chat_bubble_outline_black_48dp);
 //            messageView.setHeight(50);
 //            messageView.setBackgroundColor( (Color.LTGRAY));
-            messageView.setTextSize(16);
-            LinearLayout.LayoutParams params_message = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            messageView.setTextSize(14);
+            LinearLayout.LayoutParams params_message = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             params_message.width = 0;
             params_message.height = 0;
             imageView.setLayoutParams(params_message);
@@ -59,15 +57,6 @@ public class ChatMessageAdapter extends ArrayAdapter<MessageInstance> {
             imageView.setImageBitmap(msg.imageBitmap);
             messageView.setBackgroundResource(0);
             imageView.setBackgroundResource((msg.send) ? R.drawable.ic_chat_bubble_out : R.drawable.ic_chat_bubble_outline_black_48dp);
-        } else if(msg.audioFile != null){
-            String text = (msg.send) ? "File sent: " : "File Received: ";
-            messageView.setText(text +  msg.audioFile.getName());
-            LinearLayout.LayoutParams params_message = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-            params_message.width = 0;
-            params_message.height = 0;
-            imageView.setLayoutParams(params_message);
-            messageView.setBackgroundResource((msg.send) ? R.drawable.ic_chat_bubble_out : R.drawable.ic_chat_bubble_outline_black_48dp);
         }
         return view;
     }

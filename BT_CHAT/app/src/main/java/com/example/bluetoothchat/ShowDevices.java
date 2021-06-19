@@ -25,13 +25,13 @@ public class ShowDevices extends AppCompatActivity {
     private BluetoothAdapter BtAdapter;
     public static String EXTRA_DEVICE_ADDRESS = "device_address";
     private ArrayAdapter<String> mNewDeviceArrayAdapter;
-    int MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 1;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_show_devices);
 
         BtAdapter = BluetoothAdapter.getDefaultAdapter();
+
 
         discoverDevices();
 
@@ -41,8 +41,8 @@ public class ShowDevices extends AppCompatActivity {
         newDeviceListView.setAdapter(mNewDeviceArrayAdapter);
         newDeviceListView.setOnItemClickListener(mDeviceClickListener);
 
-        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-        this.registerReceiver(mReceiver, filter);
+        IntentFilter AvailableFound= new IntentFilter(BluetoothDevice.ACTION_FOUND);
+        this.registerReceiver(mReceiver, AvailableFound);
 
         Set<BluetoothDevice> pairedDevices = BtAdapter.getBondedDevices();
 
@@ -54,20 +54,12 @@ public class ShowDevices extends AppCompatActivity {
 
     }
     private void discoverDevices() {
-        //Toast.makeText(this, "discoverDevices()", Toast.LENGTH_SHORT).show();
-
         setTitle("Scanning for devices");
 
         // If we are already discovering bluetooth devices stop it
         if (BtAdapter.isDiscovering()) {
             BtAdapter.cancelDiscovery();
         }
-
-        ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION);
-
-
         // Request device discovery from bluetooth adapter
         BtAdapter.startDiscovery();
     }
@@ -93,9 +85,6 @@ public class ShowDevices extends AppCompatActivity {
         }
     };
 
-    /*
-     * Handle the on-click listener for all devices in the ListView
-     * */
 
     private AdapterView.OnItemClickListener mDeviceClickListener = new AdapterView.OnItemClickListener() {
         @Override
@@ -121,7 +110,6 @@ public class ShowDevices extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
 
-        // Make sure we're not doing discovery anymore
         if (BtAdapter != null) {
             BtAdapter.cancelDiscovery();
         }

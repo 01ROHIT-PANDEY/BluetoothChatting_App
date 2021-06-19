@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".MainActivity">
+    tools:context="com.example.bluetoothchat.MainActivity">
 
 
     <ImageView
@@ -12,7 +12,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:contentDescription="@string/full_screen_image"
-        android:visibility="gone" />
+        android:visibility="gone"
+        />
 
     <TextView
         android:id="@+id/connection_status"
@@ -20,7 +21,7 @@
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:padding="8dp"
-        android:text="@string/device_connection_status"
+        android:text="Bluetooth Chat"
         android:textSize="16sp" />
 
 
@@ -31,6 +32,7 @@
         android:layout_marginRight="16dp"
         android:background="@android:color/darker_gray" />
 
+
     <ListView
         android:id="@+id/message_history"
         android:layout_width="match_parent"
@@ -39,7 +41,10 @@
         android:divider="@null"
         android:dividerHeight="0dp"
         android:stackFromBottom="true"
-        android:transcriptMode="alwaysScroll" />
+        android:transcriptMode="alwaysScroll">
+
+    </ListView>
+
 
 
     <LinearLayout
@@ -53,25 +58,17 @@
             android:layout_margin="4dp"
             android:layout_weight="1"
             android:background="@drawable/textview_shape">
-            <ImageButton
-                android:id="@+id/btn_record"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_gravity="center_vertical"
-                android:background="#00000000"
-                android:contentDescription="@string/record"
-                android:src="@drawable/ic_mic_black_24dp" />
+
             <EditText
                 android:id="@+id/edit_text_text_message"
-                android:layout_width="0dp"
+                android:layout_width="240dp"
                 android:layout_height="match_parent"
                 android:layout_gravity="bottom"
                 android:layout_weight="1"
-                android:textSize="16sp"
                 android:background="@null"
                 android:hint="@string/message_hint"
-                android:inputType="textAutoCorrect|textMultiLine" />
-
+                android:inputType="textAutoCorrect|textMultiLine"
+                android:textSize="16sp" />
 
             <ImageButton
                 android:id="@+id/btn_photo_attach"

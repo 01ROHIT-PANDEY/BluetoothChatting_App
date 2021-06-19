@@ -1,6 +1,8 @@
 package com.example.bluetoothchat;
 
 import androidx.annotation.NonNull;
+
+import java.io.ByteArrayOutputStream;
 import java.util.Calendar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -13,20 +15,17 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.media.MediaPlayer;
-import android.media.MediaRecorder;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
+import android.util.Base64;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
-import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -34,65 +33,45 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
-import java.util.List;
 
-import static android.os.Environment.getExternalStorageDirectory;
-import static com.example.bluetoothchat.BluetoothChatService.MESSAGE_READ_TEXT;
-import static com.example.bluetoothchat.BluetoothChatService.MESSAGE_WRITE_TEXT;
+import static com.example.bluetoothchat.EstablishCommunication.IMAGE_SEND;
+import static com.example.bluetoothchat.EstablishCommunication.IMAGE_RECEIVE;
+import static com.example.bluetoothchat.EstablishCommunication.TEXT_RECEIVE;
+import static com.example.bluetoothchat.EstablishCommunication.TEXT_SEND;
+import static com.example.bluetoothchat.EstablishCommunication.UPDATE_STATUS;
+import static com.example.bluetoothchat.MessageInstance.DATA_IMAGE;
 import static com.example.bluetoothchat.MessageInstance.DATA_TEXT;
+
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final int REQUEST_ENABLE_BT = 1;
-    private static final int REQUEST_CONNECT_DEVICE = 3;
-    private BluetoothChatService mChatService;
-    public  static BluetoothAdapter BtAdapter;
+    private static final int CONNECT_DEVICE = 3;
+    private EstablishCommunication mChatService;
+    public static BluetoothAdapter BtAdapter;
+    public static BluetoothDevice device;
 
     private static final int SELECT_IMAGE = 11;
     private static final int MY_PERMISSION_REQUEST_READ_EXTERNAL_STORAGE = 2;
 
-    private static String mFileName = null;
-    private static final int REQUEST_RECORD_AUDIO_PERMISSION = 200;
-    private boolean permissiontoRecordAccepted = false;
-    private MediaRecorder mRecorder = null;
-    private MediaPlayer mPlayer = null;
-    private static final String LOG_TAG = "AudioRecordTest";
-
     public static final String DEVICE_NAME = "device_name";
-    public static final String TOAST = "toast";
-
-    public static final int MESSAGE_STATE_CHANGE = 1;
-    public static final int MESSAGE_DEVICE_NAME = 4;
-    public static final int MESSAGE_TOAST = 5;
-
     private StringBuffer mOutStringBuffer;
     private ListView mConversationView;
     private EditText mEditText;
     private ImageButton mButtonSend;
     private TextView connectionStatus;
     ChatMessageAdapter chatMessageAdapter;
-    String fileName = null;
-    Bitmap imageBitmap;
-    private static final int CAMERA_REQUEST = 1888;
-
+    private  Bitmap imageBitmap;
+    static final SimpleDateFormat sdf=new SimpleDateFormat("HH:mm");
+    private static final int CAMERA_REQUEST = 2000;
 
     private ImageView fullscreen;
 
-
-    private ArrayList<getDeviceInfo> users;
-
-    private final static String TAG = "ChatActivity";
+    private final static String TAG = "MainActivity";
     private final static int MAX_IMAGE_SIZE = 200000;
 
-    private HashMap<String, String> macToUser = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,8 +82,9 @@ public class MainActivity extends AppCompatActivity {
        mButtonSend=findViewById(R.id.btn_send);
        connectionStatus=findViewById(R.id.connection_status);
        mConversationView=findViewById(R.id.message_history);
-       mConversationView.setAdapter(chatMessageAdapter);
+
        chatMessageAdapter= new ChatMessageAdapter(MainActivity.this, R.layout.chat_message);
+       mConversationView.setAdapter(chatMessageAdapter);
        fullscreen = (ImageView) findViewById(R.id.fullscreen_image);
        if(mChatService==null)
        {
@@ -127,14 +107,16 @@ public class MainActivity extends AppCompatActivity {
                 return true;
 
             case R.id.menu_search_devices:
+
                 Intent bluetoothIntent = new Intent(getApplicationContext(),
                         ShowDevices.class);
-                startActivityForResult(bluetoothIntent, REQUEST_CONNECT_DEVICE);
+                startActivityForResult(bluetoothIntent, CONNECT_DEVICE);
                 break;
 
         }
         return super.onOptionsItemSelected(item);
     }
+/********/
 
     public void ensureDiscoverable()
     {
@@ -148,62 +130,274 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        switch (requestCode) {
-            case REQUEST_CONNECT_DEVICE:
-                // When DeviceListActivity returns with a device to connect
-                if (resultCode == Activity.RESULT_OK) {
-                    String macAddress = data.getExtras()
-                            .getString(ShowDevices.EXTRA_DEVICE_ADDRESS);
-                    connectDevice(macAddress);
-                }
-                break;
-        }
-    }
+    /********/
+
+
     public void connectDevice(String macAddress)
     {
-        BluetoothDevice device =BtAdapter.getRemoteDevice(macAddress);
+         device =BtAdapter.getRemoteDevice(macAddress);
         String mConnectedDeviceAddress = macAddress;
         Toast.makeText(getApplicationContext(),"Connect Request",Toast.LENGTH_LONG).show();
-          mChatService.connect(device);
+        mChatService.connect(device);
     }
 
-    public void PhotoMessage(View view) {
-        //permissionCheck();
+
+    /********/
+
+    private void setupChat() {
+        // Initialize the compose field with a listener for the return key
+        mEditText.setOnEditorActionListener(mWriteListener);
+
+        // Initialize the send button with a listener that for click events
+        mButtonSend.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                // Send a message using content of the edit text widget
+
+                String message = mEditText.getText().toString();
+
+                sendMessage(message);
+
+            }
+        });
+
+
+        mChatService = new EstablishCommunication(handler);
+        mOutStringBuffer = new StringBuffer("");
     }
+
+
+    /********/
+
+    private void sendMessage(String message) {
+        // Check that we're actually connected before trying anything
+        if (mChatService.getState() != EstablishCommunication.UPDATE_CONNECTED)
+        {
+            Toast.makeText(getApplicationContext(), R.string.not_connected,
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Check that there's actually something to send
+        if (message.length() > 0) {
+            System.out.println("Message Length = " + message.length());
+
+            Calendar calendar = Calendar.getInstance();
+            String timeSent = sdf.format(calendar.getTime());
+            mChatService.write(message.getBytes(), DATA_TEXT, timeSent);
+
+            // Reset out string buffer to zero and clear the edit text field
+            mOutStringBuffer.setLength(0);
+            mEditText.setText(mOutStringBuffer);
+        }
+    }
+
+
+    /********/
+
+
+    public void PhotoMessage(View view) {
+
+        AccessPermission();
+    }
+
+    /********/
+
+    public void AccessPermission()
+    {
+        if (ContextCompat.checkSelfPermission(getApplicationContext(),
+                Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED)
+        {
+
+            // Should we show explanation
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.READ_EXTERNAL_STORAGE)) {
+
+                // Add your explanation for the user here.
+                Toast.makeText(this, "You have declined the permissions. " + "Please allow them first to proceed.", Toast.LENGTH_SHORT).show();
+            } else {
+                // No explanation needed, we can request the permission
+                ActivityCompat.requestPermissions(this, new String[]
+                                {Manifest.permission.READ_EXTERNAL_STORAGE},
+                        MY_PERMISSION_REQUEST_READ_EXTERNAL_STORAGE);
+            }
+        } else {
+            requestImageFromGallery();
+        }
+
+    }
+
+
+    /********/
+
+
+
+    public void requestImageFromGallery() {
+//        Toast.makeText(getApplicationContext(),"Hello ",Toast.LENGTH_LONG).show();
+        Intent attachImageIntent = new Intent();
+        attachImageIntent.setType("image/*");
+        attachImageIntent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(attachImageIntent, "Select Picture"),
+                SELECT_IMAGE);
+    }
+
+    /********/
 
     public void CameraPhoto(View view) {
         Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
         startActivityForResult(cameraIntent, CAMERA_REQUEST);
     }
 
-    static final SimpleDateFormat sdf=new SimpleDateFormat("y-MM-dd:HH:mm:ss");
-    String prevSendTime=null;
-    Handler handler=new Handler()
+/*******when application close****/
+@Override
+public void onDestroy() {
+    Log.d(TAG, "destroy called");
+    super.onDestroy();
+
+    if (mChatService != null) {
+        mChatService.CloseConnection();
+    }
+}
+
+/***********/
+
+    @Override
+    public void onBackPressed() {
+        Log.d(TAG, "back pressed");
+
+        if (mChatService != null) {
+            mChatService.CloseConnection();
+        }
+        finish();
+    }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+
+        switch (requestCode) {
+            case CONNECT_DEVICE:
+                // When DeviceListActivity returns with a device to connect
+                if (resultCode == Activity.RESULT_OK) {
+                    String macAddress = data.getExtras().getString(ShowDevices.EXTRA_DEVICE_ADDRESS);
+                    connectDevice(macAddress);
+                }
+                break;
+
+            case SELECT_IMAGE:
+                if (resultCode == Activity.RESULT_OK) {
+                    if (data != null) {
+                        try {
+                            Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), data.getData());
+
+                            // If you can't compress the image, then do not try sending.
+                            byte[] imageSend;
+                            try {
+                                imageSend = compressBitmap(bitmap, true);
+                            } catch (NullPointerException e) {
+                                Log.d(TAG, "Image cannot be compressed");
+                                Toast.makeText(getApplicationContext(), "Image can not be found" + " or is too large to be sent", Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+
+                            Calendar calendar = Calendar.getInstance();
+                            String timeSent = sdf.format(calendar.getTime());
+
+                            if (imageSend.length > MAX_IMAGE_SIZE) {
+                                Toast.makeText(getApplicationContext(), "Image is too large",
+                                        Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+
+                            mChatService.write(imageSend, DATA_IMAGE, timeSent);
+
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                break;
+
+            case CAMERA_REQUEST:
+                if (resultCode == Activity.RESULT_OK) {
+                    if (data != null) {
+                        Bitmap bitmap = (Bitmap) data.getExtras().get("data");
+
+                        byte[] cameraSend;
+                        try {
+                            cameraSend = compressBitmap(bitmap, true);
+                        } catch (Exception e) {
+                            Log.d(TAG, "Could not find the image");
+                            Toast.makeText(getApplicationContext(), "Image could not be sent",
+                                    Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
+                        if (cameraSend.length > MAX_IMAGE_SIZE) {
+                            Toast.makeText(getApplicationContext(), "Image is too large to be sent",
+                                    Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
+                        Calendar calendar = Calendar.getInstance();
+                        String timeSent = sdf.format(calendar.getTime());
+                        mChatService.write(cameraSend, DATA_IMAGE, timeSent);
+
+                    }
+                }
+                break;
+
+
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+
+    /********/
+
+
+    static byte[] compressBitmap(Bitmap image, boolean isBeforeSocketSend) {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+
+        image.compress(Bitmap.CompressFormat.JPEG, 50, bos);
+        String encodedImage = Base64.encodeToString(bos.toByteArray(),Base64.DEFAULT);
+
+        byte[] compressed = isBeforeSocketSend ? encodedImage.getBytes() : Base64.decode(encodedImage, Base64.DEFAULT);
+
+        return compressed;
+    }
+
+
+    /********/
+
+
+
+    Handler handler= new Handler()
     {
+
         @Override
         public void handleMessage(@NonNull Message msg) {
             switch (msg.what) {
-                case MESSAGE_STATE_CHANGE:
-                    switch (msg.arg1) {
-                        case BluetoothChatService.STATE_CONNECTED:
-                            connectionStatus.setText(getResources().getString(R.string.connected));
+                case UPDATE_STATUS:
+                    switch (msg.arg1)
+                    {
+                        case EstablishCommunication.UPDATE_CONNECTED:
+                            connectionStatus.setText(getResources().getString(R.string.connected)+" to "+device.getName());
                             break;
-                        case BluetoothChatService.STATE_CONNECTING:
-                            connectionStatus.setText("Connecting");
+                        case EstablishCommunication.UPDATE_CONNECTING:
+                            connectionStatus.setText("Sending Request");
                             break;
-                        case BluetoothChatService.STATE_LISTEN:
-                        /*case BluetoothChatService.STATE_CONNECTION_FAILED:
-                             connectionStatus.setText("Connecting");
-                             break;*/
-                        case BluetoothChatService.STATE_NONE:
+                        case EstablishCommunication.UPDATE_RECEIVING_REQUEST:
+                            connectionStatus.setText("Receiving Request");
+
+                        case EstablishCommunication.UPDATE_DISCONNECT:
                             connectionStatus.setText(getResources().getString(R.string.disconnected));
                             break;
+
                     }
                     break;
-                case MESSAGE_WRITE_TEXT:
+                case TEXT_SEND:
                     MessageInstance textWriteInstance = (MessageInstance) msg.obj;
                     byte[] writeBuf = (byte[]) textWriteInstance.getData();
                     // construct a string from the buffer
@@ -211,24 +405,33 @@ public class MainActivity extends AppCompatActivity {
                     Calendar calendar = Calendar.getInstance();
                     String txtWriteTime = sdf.format(calendar.getTime());
 
-                    // This is stored in milliseconds for time checking
-                    String time = textWriteInstance.getTime();
-
-                    if (prevSendTime == null) {
-                        prevSendTime = time;
-                    } else if (prevSendTime.equals(time)) {
-                        Log.d(TAG, "Time equal, msg not repeated");
-                        break;
-                    }
-                    prevSendTime = time;
-
-
                     String writeDisplayMessage = "Me: " + writeMessage + "\n" + "(" + txtWriteTime + ")";
 
                     chatMessageAdapter.add(new MessageInstance(true, writeDisplayMessage));
                     chatMessageAdapter.notifyDataSetChanged();
                     break;
-                case MESSAGE_READ_TEXT:
+
+                case IMAGE_SEND:
+                    Log.d(TAG, "Writing image");
+                    MessageInstance imageWriteInstance = (MessageInstance) msg.obj;
+                    String userMacAddress = imageWriteInstance.getMacAddress();
+
+                    Calendar ImageCalendar = Calendar.getInstance();
+                    String imageWriteTime = sdf.format(ImageCalendar.getTime());
+
+                    imageBitmap = (Bitmap) imageWriteInstance.getData();
+                    byte[] writeDecodedStringArray = compressBitmap(imageBitmap, false);
+
+                    if (imageBitmap != null) {
+                        chatMessageAdapter.add(new MessageInstance(true, imageBitmap));
+                        chatMessageAdapter.notifyDataSetChanged();
+                    } else {
+                        Log.e(TAG, "Fatal: Image bitmap is null");
+                    }
+                    break;
+
+
+                case TEXT_RECEIVE:
                     MessageInstance msgTextData = (MessageInstance) msg.obj;
                     byte[] readBuf = (byte[]) msgTextData.getData();
 
@@ -248,14 +451,36 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(TAG, "Text was read from " + msgTextData.getUserName() + ": " + msgTextData.getMacAddress());
                     break;
 
+                case IMAGE_RECEIVE:
+                    MessageInstance msgImgData = (MessageInstance) msg.obj;
+                    Calendar calTest = Calendar.getInstance();
+                    String readImageTime = sdf.format(calTest.getTime());
+
+                    if (msgImgData.getDataType() == DATA_IMAGE)
+                    {
+                        imageBitmap = (Bitmap) msgImgData.getData();
+                      //  byte[] decodedStringArray = compressBitmap(imageBitmap, false);
+                        if (imageBitmap != null) {
+                            chatMessageAdapter.add(new MessageInstance(false, imageBitmap));
+                            chatMessageAdapter.notifyDataSetChanged();
+                        } else {
+                            Log.e(TAG, "Fatal: Image bitmap is null");
+                        }
+                    }
+                    break;
+
+
             }
 
         }
 
     };
 
-    private TextView.OnEditorActionListener mWriteListener
-            = new TextView.OnEditorActionListener() {
+
+    /********/
+
+
+    private TextView.OnEditorActionListener mWriteListener = new TextView.OnEditorActionListener() {
         public boolean onEditorAction(TextView view, int actionId, KeyEvent event) {
             // If the action is a key-up event on the return key, send the message
             if (actionId == EditorInfo.IME_NULL && event.getAction() == KeyEvent.ACTION_UP) {
@@ -263,56 +488,15 @@ public class MainActivity extends AppCompatActivity {
 
                     sendMessage(message);
 
-
             }
             return true;
         }
     };
-    private void setupChat() {
-        // Initialize the compose field with a listener for the return key
-        mEditText.setOnEditorActionListener(mWriteListener);
 
-        // Initialize the send button with a listener that for click events
-        mButtonSend.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                // Send a message using content of the edit text widget
 
-                String message = mEditText.getText().toString();
 
-                    sendMessage(message);
+    // --------> Rohit Pandey
 
-            }
-        });
-
-        // Initialize the BluetoothChatService to perform bluetooth connections
-
-            Log.d(TAG, "setting up single chat");
-            mChatService = new BluetoothChatService(handler);
-
-        // Initialize the buffer for outgoing messages
-        mOutStringBuffer = new StringBuffer("");
-    }
-    private void sendMessage(String message) {
-        // Check that we're actually connected before trying anything
-        if (mChatService.getState() != BluetoothChatService.STATE_CONNECTED) {
-            Toast.makeText(getApplicationContext(), R.string.not_connected,
-                    Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Check that there's actually something to send
-        if (message.length() > 0) {
-            System.out.println("Message Length = " + message.length());
-
-            Calendar calendar = Calendar.getInstance();
-            String timeSent = sdf.format(calendar.getTime());
-            mChatService.write(message.getBytes(), DATA_TEXT, timeSent);
-
-            // Reset out string buffer to zero and clear the edit text field
-            mOutStringBuffer.setLength(0);
-            mEditText.setText(mOutStringBuffer);
-        }
-    }
 
 
 }
