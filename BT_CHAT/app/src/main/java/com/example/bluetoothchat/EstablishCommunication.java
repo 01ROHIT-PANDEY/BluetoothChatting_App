@@ -275,19 +275,19 @@ public class EstablishCommunication
 
         public StartCommunication(BluetoothSocket socket) {
             mSocket = socket;
-            InputStream tmpIn = null;
-            OutputStream tmpOut = null;
+            InputStream Input = null;
+            OutputStream Output = null;
 
             // Get the BluetoothSocket input and output streams
             try {
-                tmpIn = socket.getInputStream();
-                tmpOut = socket.getOutputStream();
+                Input = socket.getInputStream();
+                Output = socket.getOutputStream();
             } catch (IOException e) {
                 Log.e(TAG, "temp sockets not created", e);
             }
 
-            mInStream = tmpIn;
-            mOutStream = tmpOut;
+            mInStream = Input;
+            mOutStream = Output;
             mState = UPDATE_CONNECTED;
         }
 
@@ -327,7 +327,7 @@ public class EstablishCommunication
                     bos.write(dst);
                     //Following condition checks if we have received all necessary bytes to construct a message out of it.
                     if (bos.size() == numOfPackets) {
-                        //For Text and Audio notes
+
                         switch(datatype) {
 
                             case DATA_TEXT:

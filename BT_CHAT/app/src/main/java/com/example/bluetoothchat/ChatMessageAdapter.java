@@ -45,8 +45,6 @@ public class ChatMessageAdapter extends ArrayAdapter<MessageInstance> {
 
             messageView.setText(msg.message);
             messageView.setBackgroundResource((msg.send) ? R.drawable.ic_chat_bubble_out : R.drawable.ic_chat_bubble_outline_black_48dp);
-//            messageView.setHeight(50);
-//            messageView.setBackgroundColor( (Color.LTGRAY));
             messageView.setTextSize(14);
             LinearLayout.LayoutParams params_message = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             params_message.width = 0;
