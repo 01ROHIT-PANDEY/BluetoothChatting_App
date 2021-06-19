@@ -64,7 +64,7 @@ public class EstablishCommunication
         mState = UPDATE_DISCONNECT;
         mNewState = mState;
         mHandler = handler;
-        EstablishCommunication.this.start();
+
     }
 
 
